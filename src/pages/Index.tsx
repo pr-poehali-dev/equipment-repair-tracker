@@ -62,6 +62,7 @@ function Index() {
   const [eqForm, setEqForm] = useState({ ...emptyEq });
   const [repairForm, setRepairForm] = useState({ ...emptyRepair });
   const [saving, setSaving] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<string>('Все');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -82,15 +83,16 @@ function Index() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return data;
-    return data.filter(
-      (e) =>
+    return data.filter((e) => {
+      const matchQuery = !q ||
         e.inv_number.toLowerCase().includes(q) ||
         e.name.toLowerCase().includes(q) ||
         e.category.toLowerCase().includes(q) ||
-        e.location.toLowerCase().includes(q),
-    );
-  }, [query, data]);
+        e.location.toLowerCase().includes(q);
+      const matchStatus = statusFilter === 'Все' || e.status === statusFilter;
+      return matchQuery && matchStatus;
+    });
+  }, [query, statusFilter, data]);
 
   const totalRepairs = data.reduce((s, e) => s + e.repairs.filter((r) => r.status === 'Выполнен').length, 0);
   const planned = data.reduce((s, e) => s + e.repairs.filter((r) => r.status === 'Плановый').length, 0);
@@ -216,9 +218,28 @@ function Index() {
 
       {/* Equipment list */}
       <section className="container max-w-6xl py-10">
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
           <h2 className="text-lg font-semibold tracking-tight">Каталог оборудования</h2>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 flex-wrap">
+            {['Все', 'Исправно', 'В ремонте', 'План ТО'].map((s) => (
+              <button
+                key={s}
+                onClick={() => setStatusFilter(s)}
+                className={`h-8 px-3 rounded-full text-xs font-medium border transition-colors ${
+                  statusFilter === s
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'border-border text-muted-foreground hover:bg-secondary'
+                }`}
+              >
+                {s}
+                {s !== 'Все' && (
+                  <span className="ml-1.5 font-mono opacity-70">
+                    {data.filter((e) => e.status === s).length}
+                  </span>
+                )}
+              </button>
+            ))}
+            <div className="w-px h-5 bg-border mx-1" />
             <div className="font-mono text-xs text-muted-foreground">{filtered.length} из {data.length}</div>
             <Button size="sm" className="gap-2" onClick={() => setAddOpen(true)}>
               <Icon name="Plus" size={15} /> Добавить
