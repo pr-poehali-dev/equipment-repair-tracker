@@ -1,0 +1,22 @@
+{
+  "tests": [
+    {
+      "name": "Список оборудования",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200
+    },
+    {
+      "name": "Статистика",
+      "method": "GET",
+      "path": "/?resource=stats",
+      "expectedStatus": 200
+    },
+    {
+      "name": "CORS preflight",
+      "method": "OPTIONS",
+      "path": "/",
+      "expectedStatus": 200
+    }
+  ]
+}
